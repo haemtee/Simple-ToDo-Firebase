@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta nnhbame="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- The core Firebase JS SDK is always required and must be listed first -->
+  <script src="https://www.gstatic.com/firebasejs/7.21.0/firebase-app.js"></script>
+
+  <!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+  <script src="https://www.gstatic.com/firebasejs/7.21.0/firebase-database.js"></script>
+   <style>
+    @media only screen and (max-width: 1080px) {
+    .container {
+        width: 100%;
+    }
+  /* For mobile phones: */
+    [class*="col-"] {
+        width: 100%;
+    }
+  }
+   </style> 
+
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous" />
+  <title>To Do List</title>
+</head>
+
+<body>
+  <div class="container">
+    <div class="row">
+      <div class="col mt-5">
+        <h2 class="text-center">My To Do List</h2>
+        
+          <div class="row">
+            <div class="col mt-5 d-flex align-justify-center">
+              <div class="input-group input-group-lg">
+                <div class="input-group">
+                </div>
+                <input type="text" class="form-control" aria-label="Sizing example input"
+                  aria-describedby="inputGroup-sizing-lg" id="todo_text" />
+                <button onclick="handleTambah()" class="btn btn-outline-primary" type="button" id="button-addon1">Add To
+                  Do List</button>
+              </div>
+            </div>
+          </div>
+          <div class="row mt-5">
+            <div class="col">
+              <div class="list-todo-group">
+                <div class="row" id="todolist">
+
+                </div>
+                <!-- <button type="button" class="list-group-item list-group-item-action">Dapibus ac facilisis in</button> -->
+              </div>
+            </div>
+          </div>
+        
+
+      </div>
+    </div>
+  </div>
+  <script>
+    var firebaseConfig = {
+    apiKey: process.env.apikey,
+    authDomain: process.env.authdom,
+    databaseURL: process.env.databaseurl,
+    projectId: process.env.projectid,
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const todosRef = db.ref('todo');
+
+    function handleTambah() {
+      let text = document.getElementById('todo_text').value
+
+      if (text) {
+        todosRef.push({ "todo": text, "status": 0 })
+        document.getElementById('todo_text').value = ''
+      }
+    }
+
+    todosRef.on('value', showData, Err)
+
+    function showData(items) {
+      let _content = ""
+
+      items.forEach((element) => {
+        if (element.val().status === 0) {
+          _content += '<div class="col-10 d-flex align-justify-center"> <button type="button" onclick="completeTask()" class="list-group-item list-group-item-action" id="' + element.key + '">' + element.val().todo +
+            '</button></div>' + `<div class="col"> <button onclick="deleteData()" class="btn btn-outline-warning" type="button" id="${element.key}">Delete</button> </div>`
+        }
+        else {
+          _content += '<div class="col-10 d-flex align-justify-center"> <button type="button" onclick="completeTask()" class="list-group-item list-group-item-action list-group-item-success" id="' + element.key + '">' + element.val().todo +
+            '</button></div>' + `<div class="col"> <button onclick="deleteData()" class="btn btn-outline-warning" type="button" id="${element.key}">Delete</button> </div>`
+        }
+
+
+      });
+      document.getElementById('todolist').innerHTML = _content
+    }
+
+    function Err(error) {
+      console.log(error)
+    }
+
+    function deleteData() {
+      let i = event.srcElement.id
+      // console.log(i);  
+      todosRef.child(i).remove()
+    }
+
+    function completeTask() {
+      let el = event.srcElement.className
+      let _idt = event.srcElement.id
+      let text = event.srcElement.innerHTML
+
+      let editRef = todosRef.child(_idt)
+
+      if (el == 'list-group-item list-group-item-action') {
+        event.srcElement.className = 'list-group-item list-group-item-action list-group-item-success'
+        editRef.update({ 'todo': text, 'status': 1 })
+      }
+      else {
+        event.srcElement.className = 'list-group-item list-group-item-action'
+        editRef.update({ 'todo': text, 'status': 0 })
+      }
+
+
+    }
+  </script>
+
+</body>
+
+</html>
